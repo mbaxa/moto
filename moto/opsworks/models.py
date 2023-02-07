@@ -1,6 +1,8 @@
 from moto.core import BaseBackend, BackendDict, BaseModel
 from moto.ec2 import ec2_backends
 from moto.moto_api._internal import mock_random as random
+
+# from moto.utilities.tagging_service import TaggingService
 import datetime
 
 from .exceptions import ResourceNotFoundException, ValidationException
@@ -80,7 +82,7 @@ class OpsworkInstance(BaseModel):
         self.reported_os = {}
         self.infrastructure_class = "ec2 (fixed)"
         self.platform = "linux (fixed)"
-
+        self.tags = None
         self.id = str(random.uuid4())
         self.created_at = datetime.datetime.utcnow()
 
@@ -150,6 +152,7 @@ class OpsworkInstance(BaseModel):
             "SecurityGroupIds": self.security_group_ids,
             "AmiId": self.ami_id,
             "Status": self.status,
+            "Tags": self.tags,
         }
         if self.ssh_keyname is not None:
             d.update({"SshKeyName": self.ssh_keyname})
@@ -272,6 +275,7 @@ class Layer(BaseModel):
         self.use_ebs_optimized_instances = use_ebs_optimized_instances
 
         self.id = str(random.uuid4())
+        self.tags = None
         self.created_at = datetime.datetime.utcnow()
 
     def __eq__(self, other):
@@ -298,6 +302,7 @@ class Layer(BaseModel):
             "Name": self.name,
             "Shortname": self.shortname,
             "StackId": self.stack_id,
+            "Tags": self.tags,
             "Type": self.type,
             "UseEbsOptimizedInstances": self.use_ebs_optimized_instances,
             "VolumeConfigurations": self.volume_configurations,
@@ -366,7 +371,7 @@ class Stack(BaseModel):
         self.use_opsworks_security_groups = use_opsworks_security_groups
         self.default_root_device_type = default_root_device_type
         self.agent_version = agent_version
-
+        self.tags = None
         self.id = str(random.uuid4())
         self.layers = []
         self.apps = []
@@ -404,6 +409,7 @@ class Stack(BaseModel):
             "Region": self.region,
             "ServiceRoleArn": self.service_role_arn,
             "StackId": self.id,
+            "Tags": self.tags,
             "UseCustomCookbooks": self.use_custom_cookbooks,
             "UseOpsworksSecurityGroups": self.use_opsworks_security_groups,
             "VpcId": self.vpcid,
@@ -587,6 +593,7 @@ class OpsWorksBackend(BaseBackend):
 
     def describe_layers(self, stack_id, layer_ids):
         if stack_id is not None and layer_ids is not None:
+            # TODO: You can't seem to query by a single layer_id in moto
             raise ValidationException(
                 "Please provide one or more layer IDs or a stack ID"
             )
@@ -651,6 +658,11 @@ class OpsWorksBackend(BaseBackend):
                 i.to_dict() for i in self.instances.values() if stack_id == i.stack_id
             ]
             return instances
+
+    def list_tags(self, arn):
+        """Returns a list of tags that are applied to the specified stack or layer."""
+        # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/opsworks.html#OpsWorks.Client.list_tags
+        return arn.tags
 
     def start_instance(self, instance_id):
         if instance_id not in self.instances:

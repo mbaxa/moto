@@ -7,6 +7,7 @@ from .models import opsworks_backends
 class OpsWorksResponse(BaseResponse):
     def __init__(self):
         super().__init__(service_name="opsworks")
+        self.tags = {}
 
     @property
     def parameters(self):
@@ -136,6 +137,10 @@ class OpsWorksResponse(BaseResponse):
             instance_ids, layer_id, stack_id
         )
         return json.dumps({"Instances": instances}, indent=1)
+
+    def list_tags(self):
+        tags = self.parameters.get("Tags")
+        return json.dumps({"Tags": tags}, indent=1)
 
     def start_instance(self):
         instance_id = self.parameters.get("InstanceId")

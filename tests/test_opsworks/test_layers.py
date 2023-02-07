@@ -93,3 +93,36 @@ def test_describe_layers():
     client.describe_layers.when.called_with(LayerIds=["nothere"]).should.throw(
         Exception, "nothere"
     )
+
+
+@freeze_time("2015-01-01")
+@mock_opsworks
+def test_list_tags():
+    client = boto3.client("opsworks", region_name="us-east-1")
+    stack_id = client.create_stack(
+        Name="test_stack_1",
+        Region="us-east-1",
+        ServiceRoleArn="service_arn",
+        DefaultInstanceProfileArn="profile_arn",
+    )["StackId"]
+    layer_id = client.create_layer(
+        StackId=stack_id,
+        Type="custom",
+        Name="TestLayer",
+        Shortname="TestLayerShortName",
+    )["LayerId"]
+
+    stack_arn = client.describe_stacks(StackIds=[stack_id,])[
+        "Stacks"
+    ]["Arn"]
+    layer_arn = client.describe_layers(StackId=stack_id, LayerIds=[layer_id,])[
+        "Layers"
+    ]["Arn"]
+    client.tag_resource(stack_arn, {"key": "value"})  # Stack
+    client.tag_resource(layer_arn, {"key": "value"})  # Layer
+    response = client.list_tags(stack_arn)
+    response.should.contain("Tags")
+    # response.should.equal some test tag
+    response = client.list_tags(layer_arn)
+    response.should.contain("Tags")
+    # response.should.equal some test tag
