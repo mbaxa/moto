@@ -23,7 +23,7 @@ class EC2ClientError(RESTError):
     # EC2 uses <RequestID> as tag name in the XML response
     request_id_tag_name = "RequestID"
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         kwargs.setdefault("template", "custom_response")
         self.templates["custom_response"] = EC2_ERROR_RESPONSE
         super().__init__(*args, **kwargs)
@@ -38,12 +38,12 @@ class DefaultVpcAlreadyExists(EC2ClientError):
 
 
 class DependencyViolationError(EC2ClientError):
-    def __init__(self, message):
+    def __init__(self, message: str):
         super().__init__("DependencyViolation", message)
 
 
 class MissingParameterError(EC2ClientError):
-    def __init__(self, parameter):
+    def __init__(self, parameter: str):
         super().__init__(
             "MissingParameter",
             f"The request must contain the parameter {parameter}",
@@ -77,21 +77,21 @@ class MalformedDHCPOptionsIdError(EC2ClientError):
 
 
 class InvalidKeyPairNameError(EC2ClientError):
-    def __init__(self, key):
+    def __init__(self, key: Iterable[str]):
         super().__init__(
             "InvalidKeyPair.NotFound", f"The keypair '{key}' does not exist."
         )
 
 
 class InvalidKeyPairDuplicateError(EC2ClientError):
-    def __init__(self, key):
+    def __init__(self, key: str):
         super().__init__(
             "InvalidKeyPair.Duplicate", f"The keypair '{key}' already exists."
         )
 
 
 class InvalidKeyPairFormatError(EC2ClientError):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             "InvalidKeyPair.Format", "Key is not in valid OpenSSH public key format"
         )
@@ -110,7 +110,7 @@ class InvalidSubnetIdError(EC2ClientError):
 
 
 class InvalidFlowLogIdError(EC2ClientError):
-    def __init__(self, count, flow_log_ids):
+    def __init__(self, count: int, flow_log_ids: str):
         super().__init__(
             "InvalidFlowLogId.NotFound",
             f"These flow log ids in the input list are not found: [TotalCount: {count}] {flow_log_ids}",
@@ -118,7 +118,7 @@ class InvalidFlowLogIdError(EC2ClientError):
 
 
 class FlowLogAlreadyExists(EC2ClientError):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             "FlowLogAlreadyExists",
             "Error. There is an existing Flow Log with the same configuration and log destination.",
@@ -126,7 +126,7 @@ class FlowLogAlreadyExists(EC2ClientError):
 
 
 class InvalidNetworkAclIdError(EC2ClientError):
-    def __init__(self, network_acl_id):
+    def __init__(self, network_acl_id: str):
         super().__init__(
             "InvalidNetworkAclID.NotFound",
             f"The network acl ID '{network_acl_id}' does not exist",
@@ -189,7 +189,7 @@ class InvalidSecurityGroupDuplicateError(EC2ClientError):
 
 
 class InvalidSecurityGroupNotFoundError(EC2ClientError):
-    def __init__(self, name):
+    def __init__(self, name: str):
         super().__init__(
             "InvalidGroup.NotFound",
             f"The security group '{name}' does not exist",
@@ -212,7 +212,7 @@ class InvalidPermissionDuplicateError(EC2ClientError):
 
 
 class InvalidRouteTableIdError(EC2ClientError):
-    def __init__(self, route_table_id):
+    def __init__(self, route_table_id: str):
         super().__init__(
             "InvalidRouteTableID.NotFound",
             f"The routeTable ID '{route_table_id}' does not exist",
@@ -235,7 +235,7 @@ class RouteAlreadyExistsError(EC2ClientError):
 
 
 class InvalidInstanceIdError(EC2ClientError):
-    def __init__(self, instance_id):
+    def __init__(self, instance_id: Any):
         if isinstance(instance_id, str):
             instance_id = [instance_id]
         if len(instance_id) > 1:
@@ -246,7 +246,9 @@ class InvalidInstanceIdError(EC2ClientError):
 
 
 class InvalidInstanceTypeError(EC2ClientError):
-    def __init__(self, instance_type, error_type="InvalidInstanceType.NotFound"):
+    def __init__(
+        self, instance_type: Any, error_type: str = "InvalidInstanceType.NotFound"
+    ):
         if isinstance(instance_type, str):
             msg = f"The instance type '{instance_type}' does not exist"
         else:
@@ -395,7 +397,7 @@ class InvalidServiceName(EC2ClientError):
 
 
 class InvalidFilter(EC2ClientError):
-    def __init__(self, filter_name, error_type="InvalidFilter"):
+    def __init__(self, filter_name: str, error_type: str = "InvalidFilter"):
         super().__init__(error_type, f"The filter '{filter_name}' is invalid")
 
 
@@ -405,7 +407,7 @@ class InvalidNextToken(EC2ClientError):
 
 
 class InvalidDependantParameterError(EC2ClientError):
-    def __init__(self, dependant_parameter, parameter, parameter_value):
+    def __init__(self, dependant_parameter: str, parameter: str, parameter_value: str):
         super().__init__(
             "InvalidParameter",
             f"{dependant_parameter} can't be empty if {parameter} is {parameter_value}.",
@@ -413,7 +415,7 @@ class InvalidDependantParameterError(EC2ClientError):
 
 
 class InvalidDependantParameterTypeError(EC2ClientError):
-    def __init__(self, dependant_parameter, parameter_value, parameter):
+    def __init__(self, dependant_parameter: str, parameter_value: str, parameter: str):
         super().__init__(
             "InvalidParameter",
             f"{dependant_parameter} type must be {parameter_value} if {parameter} is provided.",
@@ -421,7 +423,7 @@ class InvalidDependantParameterTypeError(EC2ClientError):
 
 
 class InvalidAggregationIntervalParameterError(EC2ClientError):
-    def __init__(self, parameter):
+    def __init__(self, parameter: str):
         super().__init__("InvalidParameter", f"Invalid {parameter}")
 
 
@@ -449,7 +451,7 @@ class InvalidParameterValueErrorTagNull(EC2ClientError):
 
 
 class InvalidParameterValueErrorUnknownAttribute(EC2ClientError):
-    def __init__(self, parameter_value):
+    def __init__(self, parameter_value: str):
         super().__init__(
             "InvalidParameterValue",
             f"Value ({parameter_value}) for parameter attribute is invalid. Unknown attribute.",
@@ -457,14 +459,14 @@ class InvalidParameterValueErrorUnknownAttribute(EC2ClientError):
 
 
 class InvalidGatewayIDError(EC2ClientError):
-    def __init__(self, gateway_id):
+    def __init__(self, gateway_id: str):
         super().__init__(
             "InvalidGatewayID.NotFound", f"The eigw ID '{gateway_id}' does not exist"
         )
 
 
 class InvalidInternetGatewayIdError(EC2ClientError):
-    def __init__(self, internet_gateway_id):
+    def __init__(self, internet_gateway_id: str):
         super().__init__(
             "InvalidInternetGatewayID.NotFound",
             f"InternetGatewayID {internet_gateway_id} does not exist.",
@@ -472,7 +474,7 @@ class InvalidInternetGatewayIdError(EC2ClientError):
 
 
 class GatewayNotAttachedError(EC2ClientError):
-    def __init__(self, internet_gateway_id, vpc_id):
+    def __init__(self, internet_gateway_id: str, vpc_id: str):
         super().__init__(
             "Gateway.NotAttached",
             f"InternetGatewayID {internet_gateway_id} is not attached to a VPC {vpc_id}.",
@@ -562,7 +564,7 @@ class InvalidAvailabilityZoneError(EC2ClientError):
 
 
 class AvailabilityZoneNotFromRegionError(EC2ClientError):
-    def __init__(self, availability_zone_value):
+    def __init__(self, availability_zone_value: str):
         super().__init__(
             "InvalidParameterValue",
             f"Invalid Availability Zone ({availability_zone_value})",
@@ -570,7 +572,7 @@ class AvailabilityZoneNotFromRegionError(EC2ClientError):
 
 
 class NetworkAclEntryAlreadyExistsError(EC2ClientError):
-    def __init__(self, rule_number):
+    def __init__(self, rule_number: str):
         super().__init__(
             "NetworkAclEntryAlreadyExists",
             f"The network acl entry identified by {rule_number} already exists.",
@@ -630,7 +632,7 @@ class OperationNotPermitted3(EC2ClientError):
 
 
 class OperationNotPermitted4(EC2ClientError):
-    def __init__(self, instance_id):
+    def __init__(self, instance_id: str):
         super().__init__(
             "OperationNotPermitted",
             f"The instance '{instance_id}' may not be terminated. Modify its 'disableApiTermination' instance attribute and try again.",
@@ -638,7 +640,7 @@ class OperationNotPermitted4(EC2ClientError):
 
 
 class InvalidLaunchTemplateNameAlreadyExistsError(EC2ClientError):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             "InvalidLaunchTemplateName.AlreadyExistsException",
             "Launch template name already in use.",
@@ -646,7 +648,7 @@ class InvalidLaunchTemplateNameAlreadyExistsError(EC2ClientError):
 
 
 class InvalidLaunchTemplateNameNotFoundError(EC2ClientError):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             "InvalidLaunchTemplateName.NotFoundException",
             "At least one of the launch templates specified in the request does not exist.",
@@ -654,7 +656,7 @@ class InvalidLaunchTemplateNameNotFoundError(EC2ClientError):
 
 
 class InvalidLaunchTemplateNameNotFoundWithNameError(EC2ClientError):
-    def __init__(self, name):
+    def __init__(self, name: str):
         super().__init__(
             "InvalidLaunchTemplateName.NotFoundException",
             f"The specified launch template, with template name {name}, does not exist",
@@ -670,7 +672,7 @@ class InvalidParameterDependency(EC2ClientError):
 
 
 class IncorrectStateIamProfileAssociationError(EC2ClientError):
-    def __init__(self, instance_id):
+    def __init__(self, instance_id: str):
         super().__init__(
             "IncorrectState",
             f"There is an existing association for instance {instance_id}",
@@ -678,7 +680,7 @@ class IncorrectStateIamProfileAssociationError(EC2ClientError):
 
 
 class InvalidAssociationIDIamProfileAssociationError(EC2ClientError):
-    def __init__(self, association_id):
+    def __init__(self, association_id: str):
         super().__init__(
             "InvalidAssociationID.NotFound",
             f"An invalid association-id of '{association_id}' was given",

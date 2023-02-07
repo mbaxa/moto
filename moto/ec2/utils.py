@@ -7,7 +7,7 @@ from datetime import datetime
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
-from typing import Any, Dict, List
+from typing import Any, Dict, List, TypeVar, Optional
 
 from moto.iam import iam_backends
 from moto.moto_api._internal import mock_random as random
@@ -80,7 +80,7 @@ def random_instance_id() -> str:
     return random_id(prefix=EC2_RESOURCE_TO_PREFIX["instance"], size=17)
 
 
-def random_reservation_id():
+def random_reservation_id() -> str:
     return random_id(prefix=EC2_RESOURCE_TO_PREFIX["reservation"])
 
 
@@ -92,11 +92,11 @@ def random_security_group_rule_id():
     return random_id(prefix=EC2_RESOURCE_TO_PREFIX["security-group-rule"], size=17)
 
 
-def random_fleet_id():
+def random_fleet_id() -> str:
     return f"fleet-{random_resource_id(size=8)}-{random_resource_id(size=4)}-{random_resource_id(size=4)}-{random_resource_id(size=4)}-{random_resource_id(size=12)}"
 
 
-def random_flow_log_id():
+def random_flow_log_id() -> str:
     return random_id(prefix=EC2_RESOURCE_TO_PREFIX["flow-logs"])
 
 
@@ -126,11 +126,11 @@ def random_subnet_association_id():
     return random_id(prefix=EC2_RESOURCE_TO_PREFIX["route-table-association"])
 
 
-def random_network_acl_id():
+def random_network_acl_id() -> str:
     return random_id(prefix=EC2_RESOURCE_TO_PREFIX["network-acl"])
 
 
-def random_network_acl_subnet_association_id():
+def random_network_acl_subnet_association_id() -> str:
     return random_id(prefix=EC2_RESOURCE_TO_PREFIX["network-acl-subnet-assoc"])
 
 
@@ -150,7 +150,7 @@ def random_volume_id() -> str:
     return random_id(prefix=EC2_RESOURCE_TO_PREFIX["volume"])
 
 
-def random_key_pair_id():
+def random_key_pair_id() -> str:
     return random_id(prefix=EC2_RESOURCE_TO_PREFIX["key-pair"])
 
 
@@ -174,11 +174,11 @@ def random_eip_association_id() -> str:
     return random_id(prefix=EC2_RESOURCE_TO_PREFIX["vpc-elastic-ip-association"])
 
 
-def random_internet_gateway_id():
+def random_internet_gateway_id() -> str:
     return random_id(prefix=EC2_RESOURCE_TO_PREFIX["internet-gateway"])
 
 
-def random_egress_only_internet_gateway_id():
+def random_egress_only_internet_gateway_id() -> str:
     return random_id(
         prefix=EC2_RESOURCE_TO_PREFIX["egress-only-internet-gateway"], size=17
     )
@@ -224,11 +224,11 @@ def random_transit_gateway_attachment_id():
     )
 
 
-def random_launch_template_id():
+def random_launch_template_id() -> str:
     return random_id(prefix=EC2_RESOURCE_TO_PREFIX["launch-template"], size=17)
 
 
-def random_iam_instance_profile_association_id():
+def random_iam_instance_profile_association_id() -> str:
     return random_id(prefix=EC2_RESOURCE_TO_PREFIX["iam-instance-profile-association"])
 
 
@@ -240,7 +240,7 @@ def random_public_ip() -> str:
     return f"54.214.{random.choice(range(255))}.{random.choice(range(255))}"
 
 
-def random_dedicated_host_id():
+def random_dedicated_host_id() -> str:
     return random_id(prefix=EC2_RESOURCE_TO_PREFIX["dedicated_host"], size=17)
 
 
@@ -290,7 +290,7 @@ def generate_route_id(
     return f"{route_table_id}~{cidr_block}"
 
 
-def random_managed_prefix_list_id():
+def random_managed_prefix_list_id() -> str:
     return random_id(prefix=EC2_RESOURCE_TO_PREFIX["managed-prefix-list"], size=8)
 
 
@@ -448,7 +448,12 @@ def instance_value_in_filter_values(instance_value, filter_values):
     return True
 
 
-def filter_reservations(reservations, filter_dict):
+FILTER_TYPE = TypeVar("FILTER_TYPE")
+
+
+def filter_reservations(
+    reservations: List[FILTER_TYPE], filter_dict: Any
+) -> List[FILTER_TYPE]:
     result = []
     for reservation in reservations:
         new_instances = []
@@ -485,7 +490,9 @@ def passes_igw_filter_dict(igw, filter_dict):
     return True
 
 
-def filter_internet_gateways(igws, filter_dict):
+def filter_internet_gateways(
+    igws: List[FILTER_TYPE], filter_dict: Any
+) -> List[FILTER_TYPE]:
     result = []
     for igw in igws:
         if passes_igw_filter_dict(igw, filter_dict):
@@ -519,7 +526,9 @@ def is_filter_matching(obj, _filter, filter_value):
         return value in filter_value
 
 
-def generic_filter(filters: Dict[str, Any], objects: List[Any]) -> List[Any]:
+def generic_filter(
+    filters: Dict[str, Any], objects: List[FILTER_TYPE]
+) -> List[FILTER_TYPE]:
     if filters:
         for (_filter, _filter_value) in filters.items():
             objects = [
@@ -538,7 +547,7 @@ def simple_aws_filter_to_re(filter_string):
     return tmp_filter
 
 
-def random_key_pair():
+def random_key_pair() -> Dict[str, str]:
     private_key = rsa.generate_private_key(
         public_exponent=65537, key_size=2048, backend=default_backend()
     )
@@ -630,7 +639,7 @@ def generate_instance_identity_document(instance):
     return document
 
 
-def rsa_public_key_parse(key_material):
+def rsa_public_key_parse(key_material: Any) -> Any:
     # These imports take ~.5s; let's keep them local
     import sshpubkeys.exceptions
     from sshpubkeys.keys import SSHKey
@@ -650,7 +659,7 @@ def rsa_public_key_parse(key_material):
     return public_key.rsa
 
 
-def rsa_public_key_fingerprint(rsa_public_key):
+def rsa_public_key_fingerprint(rsa_public_key: Any) -> str:
     key_data = rsa_public_key.public_bytes(
         encoding=serialization.Encoding.DER,
         format=serialization.PublicFormat.SubjectPublicKeyInfo,
@@ -660,7 +669,9 @@ def rsa_public_key_fingerprint(rsa_public_key):
     return fingerprint
 
 
-def filter_iam_instance_profile_associations(iam_instance_associations, filter_dict):
+def filter_iam_instance_profile_associations(
+    iam_instance_associations: List[FILTER_TYPE], filter_dict: Any
+) -> List[FILTER_TYPE]:
     if not filter_dict:
         return iam_instance_associations
     result = []
@@ -681,8 +692,10 @@ def filter_iam_instance_profile_associations(iam_instance_associations, filter_d
 
 
 def filter_iam_instance_profiles(
-    account_id, iam_instance_profile_arn, iam_instance_profile_name
-):
+    account_id: str,
+    iam_instance_profile_arn: Optional[str],
+    iam_instance_profile_name: Optional[str],
+) -> Any:
     instance_profile = None
     instance_profile_by_name = None
     instance_profile_by_arn = None
@@ -706,7 +719,9 @@ def filter_iam_instance_profiles(
     return instance_profile
 
 
-def describe_tag_filter(filters, instances):
+def describe_tag_filter(
+    filters: Any, instances: List[FILTER_TYPE]
+) -> List[FILTER_TYPE]:
     result = instances.copy()
     for instance in instances:
         for key in filters:
@@ -781,7 +796,9 @@ def gen_moto_amis(described_images, drop_images_missing_keys=True):
     return result
 
 
-def convert_tag_spec(tag_spec_set, tag_key="Tag"):
+def convert_tag_spec(
+    tag_spec_set: List[Dict[str, Any]], tag_key: str = "Tag"
+) -> Dict[str, Dict[str, str]]:
     # IN:   [{"ResourceType": _type, "Tag": [{"Key": k, "Value": v}, ..]}]
     #  (or) [{"ResourceType": _type, "Tags": [{"Key": k, "Value": v}, ..]}] <-- special cfn case
     # OUT:  {_type: {k: v, ..}}
